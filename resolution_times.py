@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import time
 import datetime
 import requests
 import sys
@@ -14,6 +15,8 @@ HEADERS = {
     'Authorization': 'Token token={0}'.format(AUTH_TOKEN),
     'Content-type': 'application/json',
 }
+num_incidents = 0
+total_time = 0
 
 def get_incidents(service_id):
     all_incidents = requests.get(
@@ -22,38 +25,42 @@ def get_incidents(service_id):
     )
     sys.stdout.write("Listing all incidents:\n")
     for incident in all_incidents.json()['incidents']:
-        sys.stdout.write("Incident ID:")
-        sys.stdout.write(incident["id"])
-        sys.stdout.write("\n")
-        get_incident_start_times(incident["id"])
+        print "incident_id: " + incident["id"]
+        get_incident_times(incident["id"])
+    print "Number of incidents", num_incidents
+    print "Total time: ", total_time
+    print "Average resolution time: ", total_time/num_incidents/60, " minutes"
 
-def get_incident_start_times(incident_id):
+def get_incident_times(incident_id):
+    global num_incidents
+    global total_time
+    start_time = ""
+    end_time = ""
+
+    num_incidents = num_incidents + 1
+
     params = {
-        'is_overview: true',
+        'is_overview: true'
     }
     log_entries = requests.get(
         '{0}/incidents/{1}/log_entries'.format(BASE_URL,incident_id),
         headers=HEADERS
     )
-    sys.stdout.write("Log Entries:\n")
-    start_time = ""
-    end_time = ""
+
     for log_entry in log_entries.json()['log_entries']:
         if log_entry["type"] == "trigger":
             if log_entry["created_at"] > start_time:
                 start_time = log_entry["created_at"]
+                start_time2 = time.mktime(datetime.datetime.strptime(start_time,"%Y-%m-%dT%H:%M:%SZ").timetuple())
         elif log_entry["type"] == "resolve":
             end_time = log_entry["created_at"]
-    sys.stdout.write("start_time:")
-    sys.stdout.write(start_time)
-    sys.stdout.write("\n")
-    sys.stdout.write("end_time")
-    sys.stdout.write(end_time)
-    sys.stdout.write("\n")
-    total_time = end_time - start_time
-    sys.stdout.write("Total Time:")
-    sys.stdout.write(total_time)
-    sys.stdout.write("\n")
+            end_time2 = time.mktime(datetime.datetime.strptime(end_time,"%Y-%m-%dT%H:%M:%SZ").timetuple())
+
+    print "start_time: " + start_time
+    print "end_time: " + end_time
+    elapsed_time = (end_time2 - start_time2)/60
+    print "elapsed_time: ", elapsed_time, " minutes"
+    total_time = total_time + elapsed_time
 
 service_id = "PUBX1JL"
 get_incidents(service_id)
