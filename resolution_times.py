@@ -40,7 +40,7 @@ def get_incident_times(incident_id):
     num_incidents = num_incidents + 1
 
     params = {
-        'is_overview: true'
+        'is_overview': True
     }
     log_entries = requests.get(
         '{0}/incidents/{1}/log_entries'.format(BASE_URL,incident_id),
