@@ -81,11 +81,7 @@ def get_incident_times(incident_id):
     ack_time = ""
 
     params = {
-<<<<<<< HEAD
-        'is_overview: false'
-=======
         'is_overview': True
->>>>>>> c2e5c052604cc3799ec3cea8a98aa41aa288402b
     }
     log_entries = requests.get(
         '{0}/incidents/{1}/log_entries'.format(BASE_URL,incident_id),
